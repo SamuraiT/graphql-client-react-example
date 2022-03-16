@@ -1,25 +1,52 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { ApolloProvider, gql, useQuery } from '@apollo/client';
+
+// applo client
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  link: new HttpLink({
+    uri: 'https://graphql-api-example.vercel.app/api/graphql',
+  }),
+});
+
+const FRUIT_QUERY = gql`
+  query {
+    fruits {
+      id
+      name
+      price
+    }
+  }
+`
+
+interface Fruit {
+  id: number;
+  name: string;
+  price: number;
+}
+
+const Fruits = () => {
+  const { loading, error, data } = useQuery(FRUIT_QUERY);
+
+  if (loading) return <p>...loading</p>;
+  if (error) return <p>{error.message}</p>;
+
+  return (
+    <div>
+      <h2>TodoList</h2>
+      {data.fruits.map((fruit: Fruit) => (
+        <p key={fruit.id}>{fruit.name}: {fruit.price}円</p>
+      ))}
+    </div>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ApolloProvider client={client}>
+      <Fruits />
+    </ApolloProvider>
   );
 }
 
